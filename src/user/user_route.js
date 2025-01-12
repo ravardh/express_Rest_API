@@ -1,5 +1,7 @@
 import express from "express";
 import { User } from "./user_model.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -17,21 +19,13 @@ router.post("/add", async (req, res, next) => {
   console.log("Creating User");
   //creating User
   try {
+    const encryptedPassword = await bcrypt.hash(password, 10);
     const result = await User.create({
       name,
       email,
-      password,
+      password: encryptedPassword,
     });
     res.status(201).json({ id: result._id });
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.get("/view", async (req, res, next) => {
-  try {
-    const users = await User.find();
-    res.status(200).json(users);
   } catch (err) {
     next(err);
   }
@@ -57,23 +51,54 @@ router.post("/login", async (req, res, next) => {
       return;
     }
 
-    if (user.password !== password) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       const error = new Error("Inavlid Email or Password !!");
-      error.statusCode = 400;
+      error.statusCode = 401;
       next(error);
       return;
     }
 
-    res.status(200).json({ message: "Login Sucessfull" });
+    const token = jwt.sign({ userID: user._id }, process.env.JWT_SECRET, {
+      expiresIn: 300,
+    });
+    console.log(token);
+    res.status(200).json({ message: "Login Sucessfull", token });
   } catch (err) {
     next(err);
   }
 });
 
-router.put("/update-name", async (req, res, next) => {
-  const { email, newname } = req.body;
-  if (!email || !newname) {
-    const error = new Error("Email and New Name are Required !!");
+const authToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "Acess Denied" });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      res.status(403).json({ message: "Acess Denied" });
+    }
+    req.user = user;
+    next();
+  });
+};
+
+router.get("/view", authToken, async (req, res, next) => {
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.put("/update-name", authToken, async (req, res, next) => {
+  const { newname } = req.body;
+  if (!newname) {
+    const error = new Error("New Name are Required !!");
     error.statusCode = 400;
     next(error);
     return;
@@ -81,7 +106,7 @@ router.put("/update-name", async (req, res, next) => {
 
   try {
     const user = await User.findOneAndUpdate(
-      { email },
+      req.user.userId ,
       { name: newname },
       { new: true }
     );
@@ -103,4 +128,3 @@ router.put("/update-name", async (req, res, next) => {
 });
 
 export default router;
-
