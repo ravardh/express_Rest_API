@@ -33,7 +33,7 @@ app.use("/user", userRouter);
 
 //Get Router
 app.get("/", (req, res) => {
-  res.status(200).json({Message:"Congratulation the API is working prefectly."})
+  res.status(200).json({message:"Congratulation the API is working prefectly."})
 });
 
 
@@ -43,7 +43,7 @@ app.use((err, req, res, next) => {
  
   console.log(err.stack);
   const StatusCode = err.statusCode || 500;
-  res.status(StatusCode).json({ Message: err.message });
+  res.status(StatusCode).json({ message: err.message });
 });
 
 const PORT = process.env.PORT || 4500;
