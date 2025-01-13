@@ -33,7 +33,7 @@ app.use("/user", userRouter);
 
 //Get Router
 app.get("/", (req, res) => {
-  res.send("Hello I am Home Page");
+  res.status(200).json({Message:"Congratulation the API is working prefectly."})
 });
 
 
