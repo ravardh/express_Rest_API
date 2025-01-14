@@ -33,7 +33,7 @@ const AddUser = () => {
 
   return (
     <>
-      <div className="container mt-4">
+      <div className="container mt-4 forms">
         <h2>Add User</h2>
         {message && <Alert variant="info">{message}</Alert>}
 

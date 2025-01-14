@@ -72,6 +72,7 @@ router.post("/login", async (req, res, next) => {
 const authToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
+  
 
   if (!token) {
     return res.status(401).json({ message: "Acess Denied" });
@@ -106,7 +107,7 @@ router.put("/update-name", authToken, async (req, res, next) => {
 
   try {
     const user = await User.findOneAndUpdate(
-      req.user.userId ,
+      req.user.userId,
       { name: newname },
       { new: true }
     );

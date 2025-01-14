@@ -20,7 +20,7 @@ app.use(cors()); //Using Cors Middleware
 
 //Custom Middleware
 const reqlogger = (req, res, next) => { 
-  console.log(`${req.method}    ${req.url}  ${new Date().toISOString()}`);
+  console.log(`${req.method}  ${req.url}  ${new Date().toISOString()}`);
  next();
 };
 
